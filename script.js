@@ -45,7 +45,6 @@ function setupNavigationControls() {
     }));
 }
 
-// Close mobile menu when clicking on a link
 // Initial setup
 document.addEventListener('DOMContentLoaded', setupNavigationControls);
 
@@ -53,49 +52,50 @@ document.addEventListener('DOMContentLoaded', setupNavigationControls);
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const targetId = this.getAttribute('href');
+        const target = document.querySelector(targetId);
         if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+            const targetPosition = target.offsetTop - navbarHeight - 20;
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
             });
         }
     });
 });
 
-// Navbar background on scroll
+// Navbar background and scroll effects
 window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
     if (window.scrollY > 100) {
-        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        navbar.classList.add('scrolled');
     } else {
-        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-        navbar.style.boxShadow = 'none';
+        navbar.classList.remove('scrolled');
     }
 });
 
-// Scroll animations
-const observerOptions = {
-    threshold: 0.1,
+// Scroll reveal animations
+const scrollObserverOptions = {
+    threshold: 0.15,
     rootMargin: '0px 0px -50px 0px'
 };
 
-const observer = new IntersectionObserver((entries) => {
+const scrollObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.classList.add('active');
+            entry.target.classList.add('is-visible');
+            // Optional: unobserve after animation
+            // scrollObserver.unobserve(entry.target);
         }
     });
-}, observerOptions);
+}, scrollObserverOptions);
 
-// Observe elements for scroll animations
+// Observe all elements with animate-on-scroll class
 document.addEventListener('DOMContentLoaded', () => {
-    const elementsToAnimate = document.querySelectorAll('.skill-item, .project-card, .education-item, .contact-item, .soft-skill-item');
-    
-    elementsToAnimate.forEach(el => {
-        el.classList.add('reveal');
-        observer.observe(el);
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => {
+        scrollObserver.observe(el);
     });
 });
 
@@ -103,26 +103,26 @@ document.addEventListener('DOMContentLoaded', () => {
 const animateSkillBars = () => {
     const skillBars = document.querySelectorAll('.skill-progress');
     skillBars.forEach(bar => {
-        const width = bar.style.width;
+        const targetWidth = bar.getAttribute('data-width');
         bar.style.width = '0';
         setTimeout(() => {
-            bar.style.width = width;
-        }, 500);
+            bar.style.width = targetWidth;
+        }, 300);
     });
 };
 
 // Trigger skill bars animation when skills section is in view
 const skillsSection = document.querySelector('#skills');
-const skillsObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            animateSkillBars();
-            skillsObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.5 });
-
 if (skillsSection) {
+    const skillsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateSkillBars();
+                skillsObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    
     skillsObserver.observe(skillsSection);
 }
 
@@ -150,27 +150,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    if (hero) {
-        const rate = scrolled * -0.5;
-        hero.style.transform = `translateY(${rate}px)`;
-    }
-});
-
-// Active navigation link highlighting for multi-page navigation
-function setActiveNavLink() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('.nav-link').forEach(link => {
+// Active navigation link highlighting based on scroll position
+function updateActiveNavLink() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const navbarHeight = document.querySelector('.navbar').offsetHeight;
+    
+    let current = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - navbarHeight - 100;
+        const sectionHeight = section.offsetHeight;
+        
+        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') === currentPage) {
+        if (link.getAttribute('href') === `#${current}`) {
             link.classList.add('active');
         }
     });
 }
-setActiveNavLink();
+
+window.addEventListener('scroll', updateActiveNavLink);
 
 // Project cards hover effect
 document.querySelectorAll('.project-card').forEach(card => {
@@ -183,13 +188,13 @@ document.querySelectorAll('.project-card').forEach(card => {
     });
 });
 
-// Contact form validation (placeholder for future implementation)
+// Contact form validation
 const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 };
 
-// Lightweight contact form handler: validates and opens mailto as fallback
+// Lightweight contact form handler
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('contact-form');
     if (!form) return;
@@ -224,11 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // Social links hover effects
 document.querySelectorAll('.social-btn').forEach(btn => {
     btn.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateX(10px)';
+        this.style.transform = 'translateX(10px) scale(1.05)';
     });
     
     btn.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateX(0)';
+        this.style.transform = 'translateX(0) scale(1)';
     });
 });
 
@@ -242,10 +247,11 @@ const createScrollToTop = () => {
     const scrollBtn = document.createElement('button');
     scrollBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
     scrollBtn.className = 'scroll-to-top';
+    scrollBtn.setAttribute('aria-label', 'Scroll to top');
     document.body.appendChild(scrollBtn);
 
     window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
+        if (window.pageYOffset > 500) {
             scrollBtn.classList.add('show');
         } else {
             scrollBtn.classList.remove('show');
@@ -262,21 +268,6 @@ const createScrollToTop = () => {
 
 // Initialize scroll to top button
 createScrollToTop();
-
-// Add CSS for active nav link
-const style = document.createElement('style');
-style.textContent = `
-    .nav-link.active {
-        color: #2563eb !important;
-    }
-    .nav-link.active::after {
-        width: 100% !important;
-    }
-`;
-document.head.appendChild(style);
-
-// Remove overlay-based page transitions and restore default navigation
-// (No-op placeholder to keep file structure consistent)
 
 // Theme toggle persistence
 document.addEventListener('DOMContentLoaded', () => {
@@ -311,7 +302,22 @@ function debounce(func, wait) {
 
 // Apply debouncing to scroll events
 const debouncedScrollHandler = debounce(() => {
-    // Scroll event handlers here
+    // Additional scroll handlers can go here
 }, 10);
 
-window.addEventListener('scroll', debouncedScrollHandler); 
+window.addEventListener('scroll', debouncedScrollHandler);
+
+// Mouse tracking for glow effects on cards
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.skill-category, .achievement-card, .availability-card');
+    
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            card.style.setProperty('--mouse-x', `${x}%`);
+            card.style.setProperty('--mouse-y', `${y}%`);
+        });
+    });
+});
