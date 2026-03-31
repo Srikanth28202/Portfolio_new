@@ -300,7 +300,7 @@ function GlowingAvatar() {
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       >
         <Image
-          src="/SRI.jpg"
+          src="./SRI.jpg"
           alt="Sri Kanth V"
           fill
           className="object-cover"
@@ -464,7 +464,7 @@ export function Hero() {
               <PremiumButton 
                 variant="secondary"
                 icon={Download}
-                onClick={() => window.open('/1SJ22CI054.pdf', '_blank')}
+                onClick={() => window.open('./1SJ22CI054.pdf', '_blank')}
               >
                 Resume
               </PremiumButton>
